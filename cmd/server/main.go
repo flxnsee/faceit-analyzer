@@ -34,6 +34,7 @@ func main() {
 		w.Write([]byte("pong"))
 	})
 	r.Get("/api/player/{nickname}", h.GetPlayer)
+	r.Get("/api/matches/{nickname}", h.GetMatches)
 
 	log.Println("listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
