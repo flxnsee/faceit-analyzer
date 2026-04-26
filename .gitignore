@@ -1,0 +1,15 @@
+faceit-analyzer
+faceit-analyzer.exe
+
+*.db
+*.db-shm
+*.db-wal
+
+.env
+
+go.sum
+
+.idea/
+
+.DS_Store
+Thumbs.db
