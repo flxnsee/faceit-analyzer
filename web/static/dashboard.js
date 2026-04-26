@@ -23,6 +23,7 @@ async function init() {
         renderKDChart(30);
         renderMapStats();
         renderPatterns();
+        renderInsights();
         setupToggles();
 
         show('content');
@@ -262,6 +263,121 @@ function renderPatterns() {
       <div class="stat-label">Last 10 K/D</div>
     </div>
   `;
+}
+
+function renderInsights() {
+    const mapStats = computeMapStats(allMatches);
+    const insights = generateInsights(mapStats, allMatches);
+    const list     = document.getElementById('weak-spots-list');
+
+    if (!insights.length) {
+        list.innerHTML = `<li>No significant weak spots detected in the last ${allMatches.length} matches.</li>`;
+        return;
+    }
+    list.innerHTML = insights.map(i => `<li>${i}</li>`).join('');
+}
+
+function generateInsights(mapStats, matches) {
+    const insights = [];
+    const qualified = mapStats.filter(m => m.games >= 5);
+
+    if (qualified.length) {
+        const worst = qualified.reduce((a, b) => a.winRate < b.winRate ? a : b);
+        if (worst.winRate < 40) {
+            insights.push(
+                `You win only <strong>${worst.winRate.toFixed(0)}%</strong> of your games on ` +
+                `<strong>${formatMapName(worst.map)}</strong> (${worst.games} games played).`
+            );
+        }
+    }
+
+    if (qualified.length) {
+        const best = qualified.reduce((a, b) => a.winRate > b.winRate ? a : b);
+        if (best.winRate >= 65) {
+            insights.push(
+                `<strong>${formatMapName(best.map)}</strong> is your strongest map — ` +
+                `<strong>${best.winRate.toFixed(0)}%</strong> win rate over ${best.games} games.`
+            );
+        }
+    }
+
+    if (mapStats.length) {
+        const mostPlayed = mapStats.reduce((a, b) => a.games > b.games ? a : b);
+        if (mostPlayed.kd < 1.0) {
+            insights.push(
+                `Your K/D on <strong>${formatMapName(mostPlayed.map)}</strong> ` +
+                `(your most-played map) is <strong>${mostPlayed.kd.toFixed(2)}</strong> — below 1.0.`
+            );
+        }
+    }
+
+    const totalKills = matches.reduce((s, m) => s + m.kills,     0);
+    const totalHS    = matches.reduce((s, m) => s + m.headshots, 0);
+    if (totalKills >= 50) {
+        const hsPct = totalHS / totalKills * 100;
+        if (hsPct < 25) {
+            insights.push(
+                `Low headshot rate: <strong>${hsPct.toFixed(0)}%</strong>. ` +
+                `Aim training focused on head level could improve your K/D.`
+            );
+        } else if (hsPct >= 55) {
+            insights.push(
+                `High headshot rate of <strong>${hsPct.toFixed(0)}%</strong> — ` +
+                `your aim is a real strength.`
+            );
+        }
+    }
+
+    const wins    = matches.filter(m => m.result === 'W').length;
+    const winRate = wins / matches.length * 100;
+    if (matches.length >= 20 && winRate < 40) {
+        insights.push(
+            `Overall win rate of <strong>${winRate.toFixed(0)}%</strong> over ` +
+            `${matches.length} matches suggests a consistent performance issue — ` +
+            `review your most-played maps for patterns.`
+        );
+    }
+
+    const last10 = matches.slice(0, 10);
+    if (last10.length >= 4) {
+        const first  = last10[0].result;
+        let   streak = 0;
+        for (const m of last10) {
+            if (m.result === first) streak++;
+            else break;
+        }
+        if (streak >= 4) {
+            insights.push(streak >= 4 && first === 'L'
+                ? `You're on a <strong>${streak}-game losing streak</strong>. Consider taking a short break.`
+                : `You're on a <strong>${streak}-game winning streak</strong> — keep the momentum going!`
+            );
+        }
+    }
+
+    if (matches.length >= 20) {
+        const recent  = matches.slice(0, 10);
+        const older   = matches.slice(10, 20);
+        const kdOf    = arr => {
+            const k = arr.reduce((s, m) => s + m.kills,  0);
+            const d = arr.reduce((s, m) => s + m.deaths, 0);
+            return d > 0 ? k / d : k;
+        };
+        const recentKD = kdOf(recent);
+        const olderKD  = kdOf(older);
+        if (recentKD < olderKD - 0.2) {
+            insights.push(
+                `Your K/D has dropped from <strong>${olderKD.toFixed(2)}</strong> to ` +
+                `<strong>${recentKD.toFixed(2)}</strong> over the last 20 matches — you may be in a slump.`
+            );
+        } else if (recentKD > olderKD + 0.2) {
+            insights.push(
+                `Your K/D improved from <strong>${olderKD.toFixed(2)}</strong> to ` +
+                `<strong>${recentKD.toFixed(2)}</strong> over the last 20 matches — good progress!`
+            );
+        }
+    }
+
+    return insights;
 }
 
 async function fetchJSON(url) {

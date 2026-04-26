@@ -36,6 +36,7 @@ type Match struct {
 type MatchStats struct {
 	MatchID             string
 	PlayerID            string
+	MapName             string
 	Kills               int
 	Deaths              int
 	Assists             int
@@ -109,6 +110,7 @@ func migrate(db *sql.DB) error {
 	}
 
 	db.Exec("ALTER TABLE match_history ADD COLUMN fetched_at INTEGER NOT NULL DEFAULT 0")
+	db.Exec("ALTER TABLE match_stats ADD COLUMN map_name TEXT NOT NULL DEFAULT ''")
 	return nil
 }
 
@@ -204,12 +206,13 @@ func (c *Cache) SaveMatches(matches []Match) error {
 func (c *Cache) GetMatchStats(matchID, playerID string) (*MatchStats, error) {
 	s := &MatchStats{}
 	err := c.db.QueryRow(`
-		SELECT match_id, player_id, kills, deaths, assists, headshots, rounds_played,
+		SELECT match_id, player_id, map_name, kills, deaths, assists, headshots, rounds_played,
 		       pistol_rounds_won, pistol_rounds_total, overtime_rounds_won, overtime_rounds_total,
 		       first5_rounds_won, first5_rounds_total, fetched_at
 		FROM match_stats WHERE match_id = ? AND player_id = ?`, matchID, playerID,
-	).Scan(&s.MatchID, &s.PlayerID, &s.Kills, &s.Deaths, &s.Assists, &s.Headshots, &s.RoundsPlayed,
-		&s.PistolRoundsWon, &s.PistolRoundsTotal, &s.OvertimeRoundsWon, &s.OvertimeRoundsTotal,
+	).Scan(&s.MatchID, &s.PlayerID, &s.MapName, &s.Kills, &s.Deaths, &s.Assists, &s.Headshots,
+		&s.RoundsPlayed, &s.PistolRoundsWon, &s.PistolRoundsTotal,
+		&s.OvertimeRoundsWon, &s.OvertimeRoundsTotal,
 		&s.First5RoundsWon, &s.First5RoundsTotal, &s.FetchedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -221,12 +224,12 @@ func (c *Cache) SaveMatchStats(s *MatchStats) error {
 	s.FetchedAt = time.Now().Unix()
 	_, err := c.db.Exec(`
 		INSERT INTO match_stats (
-			match_id, player_id, kills, deaths, assists, headshots, rounds_played,
+			match_id, player_id, map_name, kills, deaths, assists, headshots, rounds_played,
 			pistol_rounds_won, pistol_rounds_total, overtime_rounds_won, overtime_rounds_total,
 			first5_rounds_won, first5_rounds_total, fetched_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(match_id, player_id) DO NOTHING`,
-		s.MatchID, s.PlayerID, s.Kills, s.Deaths, s.Assists, s.Headshots, s.RoundsPlayed,
+		s.MatchID, s.PlayerID, s.MapName, s.Kills, s.Deaths, s.Assists, s.Headshots, s.RoundsPlayed,
 		s.PistolRoundsWon, s.PistolRoundsTotal, s.OvertimeRoundsWon, s.OvertimeRoundsTotal,
 		s.First5RoundsWon, s.First5RoundsTotal, s.FetchedAt,
 	)
