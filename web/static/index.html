@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Faceit Analyzer</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="center-wrap">
+    <div class="search-card">
+        <div class="logo">
+            <span class="logo-bracket">[</span>
+            FACEIT ANALYZER
+            <span class="logo-bracket">]</span>
+        </div>
+        <p class="subtitle">Deep stats Faceit doesn't show you</p>
+
+        <form id="search-form">
+            <input
+                    id="nickname-input"
+                    type="text"
+                    placeholder="Enter Faceit nickname"
+                    autocomplete="off"
+                    spellcheck="false"
+            />
+            <button type="submit">Analyze</button>
+        </form>
+
+        <p id="error-msg" class="error hidden">Please enter a nickname.</p>
+    </div>
+</div>
+
+<script>
+    document.getElementById('search-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const val = document.getElementById('nickname-input').value.trim();
+        const err = document.getElementById('error-msg');
+        if (!val) {
+            err.classList.remove('hidden');
+            return;
+        }
+        err.classList.add('hidden');
+        window.location.href = '/dashboard.html?player=' + encodeURIComponent(val);
+    });
+</script>
+</body>
+</html>

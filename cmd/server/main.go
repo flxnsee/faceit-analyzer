@@ -36,6 +36,9 @@ func main() {
 	r.Get("/api/player/{nickname}", h.GetPlayer)
 	r.Get("/api/matches/{nickname}", h.GetMatches)
 
+	fs := http.FileServer(http.Dir("./web/static"))
+	r.Handle("/*", fs)
+
 	log.Println("listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
