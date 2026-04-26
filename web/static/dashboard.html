@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Faceit Analyzer</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="dashboard">
+    
+    <div id="loading" class="spinner-wrap">
+        <div class="spinner"></div>
+        <div>Fetching match data…</div>
+        <div style="font-size:0.75rem; margin-top:0.4rem; color:var(--muted)">
+            First load may take ~20s while we pull 100 matches
+        </div>
+    </div>
+
+    <div id="error-card" class="error-card hidden"></div>
+
+    <div id="content" class="hidden">
+        <div class="card player-header" id="player-header"></div>
+
+        <div class="card">
+            <div class="card-title">K/D Trend</div>
+            <div class="toggle-group">
+                <button data-days="30" class="active">30 days</button>
+                <button data-days="60">60 days</button>
+                <button data-days="90">90 days</button>
+            </div>
+            <canvas id="kd-chart" height="100"></canvas>
+        </div>
+
+        <div class="card" id="map-stats-card">
+            <div class="card-title">Stats by Map</div>
+            <div id="map-stats-table"></div>
+        </div>
+
+        <div class="card" id="patterns-card">
+            <div class="card-title">Match Patterns</div>
+            <div id="patterns-content" class="stat-cards"></div>
+        </div>
+
+        <div class="card" id="weak-spots-card">
+            <div class="card-title">Weak Spots</div>
+            <ul id="weak-spots-list" class="insight-list"></ul>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>
