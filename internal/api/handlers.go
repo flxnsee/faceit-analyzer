@@ -144,6 +144,7 @@ func (h *Handler) GetMatches(w http.ResponseWriter, r *http.Request) {
 				stats = &cache.MatchStats{
 					MatchID:      entry.MatchID,
 					PlayerID:     player.PlayerID,
+					MapName:      mapName,
 					Kills:        statInt(ps, "Kills"),
 					Deaths:       statInt(ps, "Deaths"),
 					Assists:      statInt(ps, "Assists"),
@@ -154,6 +155,8 @@ func (h *Handler) GetMatches(w http.ResponseWriter, r *http.Request) {
 					log.Printf("warn: save stats: %v", err)
 				}
 			}
+		} else {
+			mapName = stats.MapName
 		}
 
 		cacheMatches = append(cacheMatches, cache.Match{
@@ -205,6 +208,7 @@ func (h *Handler) serveMatchesFromCache(w http.ResponseWriter, playerID string) 
 			PlayedAt: m.PlayedAt,
 		}
 		if stats != nil {
+			mr.Map = stats.MapName
 			mr.Kills = stats.Kills
 			mr.Deaths = stats.Deaths
 			mr.Assists = stats.Assists
