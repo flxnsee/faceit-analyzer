@@ -54,7 +54,7 @@ func (h *Handler) GetPlayer(w http.ResponseWriter, r *http.Request) {
 	p, err := h.faceit.GetPlayer(nickname)
 
 	if err != nil {
-		http.Error(w, "player not found", http.StatusNotFound)
+		http.Error(w, `{"error":"player not found"}`, http.StatusNotFound)
 		return
 	}
 
@@ -120,7 +120,7 @@ func (h *Handler) GetMatches(w http.ResponseWriter, r *http.Request) {
 	history, err := h.faceit.GetMatchHistory(player.PlayerID, 100)
 
 	if err != nil {
-		http.Error(w, "failed to fetch match history", http.StatusBadGateway)
+		http.Error(w, `{"error":"failed to fetch match history from Faceit"}`, http.StatusBadGateway)
 		return
 	}
 

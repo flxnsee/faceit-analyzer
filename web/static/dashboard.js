@@ -19,6 +19,11 @@ async function init() {
 
         allMatches = Array.isArray(matches) ? matches : [];
 
+        if (allMatches.length === 0) {
+            showError('No CS2 matches found for this player.');
+            return;
+        }
+
         renderHeader(player);
         renderKDChart(30);
         renderMapStats();
@@ -382,8 +387,26 @@ function generateInsights(mapStats, matches) {
 
 async function fetchJSON(url) {
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`${res.status} — player not found or API error`);
+    if (!res.ok) {
+        let msg = `Error ${res.status}`;
+        try {
+            const body = await res.json();
+            if (body.error) msg = body.error;
+        } catch (_) {}
+        throw new Error(msg);
+    }
     return res.json();
+}
+
+function showError(msg) {
+    hide('loading');
+    const el = document.getElementById('error-card');
+    el.innerHTML = `
+    <div style="font-size:1.1rem;margin-bottom:0.5rem">Something went wrong</div>
+    <div style="font-size:0.9rem;margin-bottom:1rem">${msg}</div>
+    <a href="/" style="color:var(--accent);font-size:0.9rem">← Search again</a>
+  `;
+    el.classList.remove('hidden');
 }
 
 function rollingAvg(data, window) {
